@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+description: YouTube Audio Compressor 專案結構指南
+---
+
+# Multi-Platform Audio Compressor 專案結構
+
+這是一個跨平台的 Chrome 擴充功能專案，用於壓縮多個影片平台的音頻音量。
+
+## 核心檔案結構
+
+- **入口點**: [src/scripts/content-script.ts](mdc:src/scripts/content-script.ts) - 主要的 content script
+- **背景腳本**: [src/scripts/background.ts](mdc:src/scripts/background.ts) - Service worker 背景腳本
+- **配置檔案**: [src/manifest.json](mdc:src/manifest.json) - Chrome 擴充功能清單
+- **建置配置**: [rollup.config.mjs](mdc:rollup.config.mjs) - Rollup 打包配置
+- **TypeScript 配置**: [tsconfig.json](mdc:tsconfig.json) - TypeScript 編譯設定
+- **程式碼規範**: [biome.json](mdc:biome.json) - Biome 程式碼格式化和檢查
+
+## 專案特色
+
+- **Manifest V3**: 使用最新的 Chrome 擴充功能 API
+- **多平台支援**: 支援 YouTube、Twitch、Bilibili 等平台
+- **TypeScript**: 完整的 TypeScript 支援
+- **音頻處理**: 使用 Web Audio API 的 DynamicsCompressorNode
+- **跨平台整合**: 動態檢測平台並使用相應的選擇器
+- **鍵盤快捷鍵**: 支援 'v' 鍵快速切換壓縮功能
+- **Firefox 支援**: 包含 Gecko 特定設定
+
+## 開發工作流程
+
+- 使用 `yarn start` 進行開發模式
+- 使用 `yarn build` 建置專案
+- 使用 `yarn build:prod` 建置並打包發布版本
+- 使用 `yarn lint` 檢查程式碼品質

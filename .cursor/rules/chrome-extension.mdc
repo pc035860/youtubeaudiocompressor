@@ -1,0 +1,65 @@
+---
+globs: src/**/*.ts,src/**/*.json
+description: Chrome 擴充功能開發指南
+---
+
+# Chrome 擴充功能開發指南
+
+## Manifest V3 規範
+
+- 使用 [src/manifest.json](mdc:src/manifest.json) 定義擴充功能權限和配置
+- 只請求必要的權限（目前使用 `storage` 和 `activeTab` 權限）
+- 使用 `content_scripts` 在多個影片平台注入腳本
+- 支援 Firefox 瀏覽器（包含 `browser_specific_settings`）
+
+## 多平台支援
+
+- **YouTube**: `https://www.youtube.com/*` - 主要目標平台
+- **Twitch**: `https://www.twitch.tv/*` - 直播平台支援
+- **Bilibili**: `https://www.bilibili.com/*` - 中國影片平台
+- 使用 `getCurrentPlatform()` 函數動態檢測當前平台
+- 為每個平台提供適當的影片元素選擇器
+
+## Content Script 最佳實踐
+
+- 在 `document_start` 時機注入腳本以確保早期初始化
+- 使用 `DOMContentLoaded` 事件確保 DOM 準備就緒
+- 正確處理頁面導航和動態內容載入
+- 實現平台特定的元素檢測邏輯
+
+## 背景腳本 (Service Worker)
+
+- 使用 [src/scripts/background.ts](mdc:src/scripts/background.ts) 處理擴充功能邏輯
+- 管理擴充功能圖示的點擊事件
+- 處理與 content script 的訊息傳遞
+- 實現狀態同步和持久化
+
+## 儲存管理
+
+- 使用 `chrome.storage.local` 儲存使用者設定
+- 提供 Promise 包裝的儲存 API 函數
+- 處理儲存操作的錯誤情況
+- 支援跨平台狀態同步
+
+## 平台整合
+
+- 監聽各平台播放器控制項的變化
+- 使用平台特定的 CSS 選擇器定位元素
+- 實現統一的鍵盤快捷鍵支援（'v' 鍵）
+- 提供一致的視覺回饋和工具提示
+
+## 音頻處理
+
+- 使用 Web Audio API 進行即時音頻處理
+- 正確管理 AudioContext 生命週期
+- 實現音頻節點的動態連接和斷開
+- 處理多個音頻源的並行處理
+- 支援跨平台的音頻節點管理
+
+## 效能考量
+
+- 避免過度頻繁的 DOM 查詢
+- 使用適當的間隔檢查元素存在性
+- 清理事件監聽器和定時器
+- 優化音頻處理效能
+- 實現平台特定的效能優化

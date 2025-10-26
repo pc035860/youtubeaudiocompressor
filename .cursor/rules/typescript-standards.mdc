@@ -1,0 +1,37 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript 程式碼標準和最佳實踐
+---
+
+# TypeScript 程式碼標準
+
+## 基本規則
+
+- 使用嚴格的 TypeScript 設定（strict: true）
+- 所有函數必須有明確的返回類型註解
+- 使用 `const` 而非 `let`，除非需要重新賦值
+- 優先使用 `async/await` 而非 Promise.then()
+
+## 類型定義
+
+- 為所有函數參數和返回值定義明確類型
+- 使用介面定義複雜物件結構
+- 避免使用 `any` 類型，優先使用具體類型或 `unknown`
+
+## Chrome 擴充功能 API
+
+- 使用 `chrome.storage.local` 進行資料持久化
+- 正確處理 Chrome API 的異步特性
+- 使用 `@types/chrome` 提供的類型定義
+
+## 音頻處理
+
+- 使用 `AudioContext` 和 `DynamicsCompressorNode` 進行音頻壓縮
+- 正確管理音頻節點的連接和斷開
+- 處理音頻上下文創建失敗的情況
+
+## 錯誤處理
+
+- 使用 try-catch 包裝可能失敗的操作
+- 提供有意義的錯誤訊息
+- 優雅地處理 Chrome API 錯誤

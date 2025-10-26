@@ -1,4 +1,4 @@
-import { icon } from "../assets/icons/icon";
+/// <reference types="chrome"/>
 
 const sources: {
 	source: MediaElementAudioSourceNode;
@@ -6,6 +6,30 @@ const sources: {
 	id: string;
 	context: AudioContext;
 }[] = [];
+
+// 平台檢測
+function getCurrentPlatform(): 'youtube' | 'twitch' | 'bilibili' | 'unknown' {
+	const hostname = window.location.hostname;
+	if (hostname.includes('youtube.com')) return 'youtube';
+	if (hostname.includes('twitch.tv')) return 'twitch';
+	if (hostname.includes('bilibili.com')) return 'bilibili';
+	return 'unknown';
+}
+
+// 根據平台獲取影片選擇器
+function getVideoSelector(): string {
+	const platform = getCurrentPlatform();
+	switch (platform) {
+		case 'youtube':
+			return 'video';
+		case 'twitch':
+			return 'video[data-a-player-type], video';
+		case 'bilibili':
+			return 'video';
+		default:
+			return 'video';
+	}
+}
 
 function compressVideoNode(node: HTMLVideoElement) {
 	const found = sources.find((x) => x.id === node.id);
@@ -38,8 +62,8 @@ function compressVideoNode(node: HTMLVideoElement) {
 
 function getIfCompress(): Promise<boolean> {
 	return new Promise((resolve) => {
-		chrome.storage.local.get(["compress"], (result) => {
-			resolve(result ? result.compress : false);
+		chrome.storage.local.get(["compress"], (result: { compress?: boolean }) => {
+			resolve(result.compress ?? false);
 		});
 	});
 }
@@ -54,10 +78,12 @@ function setCompression(value: boolean): Promise<boolean> {
 
 async function updateCompression(compress: boolean) {
 	if (compress) {
-		button.setAttribute("aria-pressed", "true");
-		document.querySelectorAll("video").forEach(compressVideoNode);
+		document.querySelectorAll(getVideoSelector()).forEach((video) => {
+			if (video instanceof HTMLVideoElement) {
+				compressVideoNode(video);
+			}
+		});
 	} else {
-		button.setAttribute("aria-pressed", "false");
 		for (const { source, compression, context } of sources) {
 			source.disconnect(compression);
 			source.connect(context.destination);
@@ -65,64 +91,31 @@ async function updateCompression(compress: boolean) {
 	}
 }
 
-function createButton() {
-	const button = document.createElement("button");
-
-	button.innerHTML = icon;
-	button.classList.add("ytp-button");
-	button.classList.add("ytp-button--compress");
-	button.setAttribute("aria-label", "Compress audio");
-	button.setAttribute("title", "Compress audio");
-	button.setAttribute("aria-pressed", "false");
-	button.setAttribute("aria-keyshortcuts", "v");
-	button.setAttribute("data-title-no-tooltip", "Compress audio");
-	button.setAttribute("title", "Compress audio (v)");
-
-	return button;
-}
-
 async function toggleCompression() {
 	const compress = await getIfCompress();
 	await setCompression(!compress);
 	updateCompression(!compress);
+	
+	// 通知 background script 狀態變更
+	chrome.runtime.sendMessage({
+		type: 'TOGGLE_COMPRESSION',
+		compress: !compress
+	});
 }
 
-const button = createButton();
+// 監聽來自 background script 的訊息
+chrome.runtime.onMessage.addListener((message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+	if (message.type === 'TOGGLE_COMPRESSION') {
+		updateCompression(message.compress);
+	}
+	sendResponse({ success: true });
+});
 
 async function run() {
-	document.querySelector(".ytp-right-controls")?.prepend(button);
-	button.addEventListener("click", () => {
-		toggleCompression();
-	});
-	let hoverInterval: number | undefined;
-	button.addEventListener("mouseover", () => {
-		hoverInterval = setInterval(() => {
-			const tooltip = document.querySelector<HTMLElement>(".ytp-tooltip");
-			if (tooltip) {
-				const tooltipText =
-					tooltip.querySelector<HTMLElement>(".ytp-tooltip-text");
-				if (tooltipText) {
-					tooltip.style.display = "";
-					tooltip.querySelector<HTMLElement>(".ytp-tooltip-text");
-					tooltipText.innerText = "Compress audio (v)";
-					tooltip.style.left = `${
-						button.getBoundingClientRect().x -
-						tooltip.getBoundingClientRect().width / 2
-					}px`;
-				}
-			}
-		}, 100);
-	});
-	button.addEventListener("mouseleave", () => {
-		clearInterval(hoverInterval);
-		const tooltip = document.querySelector<HTMLElement>(".ytp-tooltip");
-		if (tooltip) {
-			tooltip.style.display = "none";
-		}
-	});
-
+	// 初始化壓縮狀態
 	updateCompression(await getIfCompress());
 
+	// 鍵盤快捷鍵支援
 	window.addEventListener("keypress", (e) => {
 		if (
 			e.key === "v" &&
@@ -137,18 +130,36 @@ async function run() {
 		}
 	});
 
-	const forceInterval = setInterval(() => {
-		if (
-			document.querySelector(".ytp-right-controls") &&
-			!document.querySelector(".ytp-button--compress")
-		) {
-			run();
-		}
-	}, 1000);
+	// 監聽新影片元素的出現
+	const observer = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+			mutation.addedNodes.forEach((node) => {
+				if (node instanceof Element) {
+					const videos = node.querySelectorAll(getVideoSelector());
+					videos.forEach((video) => {
+						if (video instanceof HTMLVideoElement) {
+							// 檢查是否需要壓縮
+							getIfCompress().then((compress) => {
+								if (compress) {
+									compressVideoNode(video);
+								}
+							});
+						}
+					});
+				}
+			});
+		});
+	});
 
+	// 開始觀察 DOM 變化
+	observer.observe(document.body, {
+		childList: true,
+		subtree: true
+	});
+
+	// 清理資源
 	window.addEventListener("unload", () => {
-		clearInterval(forceInterval);
-		clearInterval(hoverInterval);
+		observer.disconnect();
 	});
 }
 

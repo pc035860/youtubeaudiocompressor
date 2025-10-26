@@ -1,0 +1,48 @@
+---
+globs: src/scripts/background.ts
+description: 背景腳本 (Service Worker) 開發指南
+---
+
+# 背景腳本開發指南
+
+## Service Worker 基礎
+
+- 使用 [src/scripts/background.ts](mdc:src/scripts/background.ts) 作為擴充功能的背景腳本
+- 在 Manifest V3 中，背景腳本運行在 Service Worker 環境中
+- 處理擴充功能圖示點擊事件和與 content script 的通信
+
+## 圖示管理
+
+- 監聽 `chrome.action.onClicked` 事件處理圖示點擊
+- 使用 `chrome.action.setIcon()` 動態更新圖示狀態
+- 提供視覺回饋顯示當前壓縮狀態
+
+## 訊息傳遞
+
+- 使用 `chrome.tabs.sendMessage()` 與 content script 通信
+- 處理來自 content script 的狀態更新請求
+- 實現擴充功能狀態的同步
+
+## 儲存操作
+
+- 使用 `chrome.storage.local` 進行資料持久化
+- 提供 Promise 包裝的儲存 API
+- 處理儲存操作的錯誤情況
+
+## 錯誤處理
+
+- 使用 try-catch 包裝所有異步操作
+- 提供有意義的錯誤訊息
+- 優雅地處理 Chrome API 錯誤
+
+## 效能考量
+
+- 避免在 Service Worker 中執行長時間運行的任務
+- 正確處理 Service Worker 的生命週期
+- 實現適當的錯誤重試機制
+
+## 跨平台支援
+
+- 處理不同平台的特定需求
+- 實現平台特定的圖示和狀態管理
+- 支援多個標籤頁的狀態同步

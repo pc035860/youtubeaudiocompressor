@@ -1,10 +1,31 @@
 {
   "manifest_version": 3,
-  "name": "Youtube Audio Compressor",
-  "permissions": ["storage"],
+  "name": "Multi-Platform Audio Compressor",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_title": "Toggle Audio Compression",
+    "default_icon": {
+      "16": "assets/icons/16.png",
+      "24": "assets/icons/24.png",
+      "32": "assets/icons/32.png",
+      "48": "assets/icons/48.png",
+      "64": "assets/icons/64.png",
+      "128": "assets/icons/128.png",
+      "256": "assets/icons/256.png",
+      "512": "assets/icons/512.png"
+    }
+  },
+  "background": {
+    "service_worker": "scripts/background.ts"
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/watch?v=*", "https://www.youtube.com/*"],
+      "matches": [
+        "https://www.youtube.com/watch?v=*",
+        "https://www.youtube.com/*",
+        "https://www.twitch.tv/*",
+        "https://www.bilibili.com/*"
+      ],
       "js": ["scripts/content-script.ts"],
       "run_at": "document_start"
     }

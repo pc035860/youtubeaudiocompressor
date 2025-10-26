@@ -1,0 +1,83 @@
+---
+globs: src/scripts/content-script.ts
+description: 多平台支援開發指南
+---
+
+# 多平台支援指南
+
+## 支援的平台
+
+- **YouTube**: `https://www.youtube.com/*` - 主要目標平台
+- **Twitch**: `https://www.twitch.tv/*` - 直播平台
+- **Bilibili**: `https://www.bilibili.com/*` - 中國影片平台
+
+## 平台檢測
+
+```typescript
+function getCurrentPlatform(): 'youtube' | 'twitch' | 'bilibili' | 'unknown' {
+  const hostname = window.location.hostname;
+  if (hostname.includes('youtube.com')) return 'youtube';
+  if (hostname.includes('twitch.tv')) return 'twitch';
+  if (hostname.includes('bilibili.com')) return 'bilibili';
+  return 'unknown';
+}
+```
+
+## 平台特定選擇器
+
+```typescript
+function getVideoSelector(): string {
+  const platform = getCurrentPlatform();
+  switch (platform) {
+    case 'youtube':
+      return 'video';
+    case 'twitch':
+      return 'video[data-a-player-type], video';
+    case 'bilibili':
+      return 'video';
+    default:
+      return 'video';
+  }
+}
+```
+
+## 平台特定處理
+
+### YouTube
+- 使用標準 HTML5 video 元素
+- 支援所有 YouTube 播放器類型
+- 處理 YouTube 的動態內容載入
+
+### Twitch
+- 處理 Twitch 的特殊播放器結構
+- 支援 `data-a-player-type` 屬性
+- 處理直播和 VOD 內容
+
+### Bilibili
+- 支援 Bilibili 的播放器架構
+- 處理中文介面和特殊功能
+- 支援 Bilibili 的動態載入機制
+
+## 統一介面
+
+- 提供統一的 API 處理不同平台
+- 實現平台特定的適配器模式
+- 保持一致的用戶體驗
+
+## 錯誤處理
+
+- 處理平台特定的錯誤情況
+- 提供平台特定的錯誤訊息
+- 實現優雅的降級機制
+
+## 效能考量
+
+- 針對不同平台優化效能
+- 實現平台特定的快取策略
+- 處理不同平台的資源載入模式
+
+## 測試策略
+
+- 為每個平台編寫特定測試
+- 使用平台特定的測試資料
+- 驗證跨平台的一致性

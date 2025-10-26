@@ -1,0 +1,89 @@
+---
+globs: src/**/*.ts,test/**/*.ts,*.test.ts
+description: 測試指南和最佳實踐
+---
+
+# 測試指南
+
+## 測試策略
+
+- 使用 **Jest** 作為主要測試框架
+- 實現單元測試、整合測試和端對端測試
+- 測試覆蓋率目標：> 80%
+
+## 單元測試
+
+- 測試所有公開函數和類別方法
+- 使用 mock 模擬 Chrome API 和 DOM 操作
+- 測試錯誤處理和邊界情況
+- 驗證音頻處理邏輯的正確性
+
+## 整合測試
+
+- 測試 Chrome 擴充功能 API 整合
+- 驗證 content script 和 background script 的通信
+- 測試儲存操作的持久性
+- 驗證多平台支援功能
+
+## 端對端測試
+
+- 使用 **Puppeteer** 進行瀏覽器自動化測試
+- 測試擴充功能在實際網站上的行為
+- 驗證音頻壓縮功能的實際效果
+- 測試鍵盤快捷鍵和 UI 互動
+
+## Mock 策略
+
+```typescript
+// Chrome API Mock
+const mockChrome = {
+  storage: {
+    local: {
+      get: jest.fn(),
+      set: jest.fn(),
+      remove: jest.fn()
+    }
+  },
+  action: {
+    setIcon: jest.fn(),
+    onClicked: {
+      addListener: jest.fn()
+    }
+  }
+};
+```
+
+## 音頻測試
+
+- 使用 Web Audio API 測試工具
+- 驗證壓縮參數的正確性
+- 測試音頻節點的連接和斷開
+- 驗證多音頻源的處理
+
+## 平台特定測試
+
+- 測試 YouTube 平台整合
+- 測試 Twitch 平台整合
+- 測試 Bilibili 平台整合
+- 驗證平台檢測邏輯
+
+## 效能測試
+
+- 測試音頻處理的效能影響
+- 驗證記憶體使用情況
+- 測試長時間運行的穩定性
+- 監控 CPU 使用率
+
+## 測試環境設定
+
+- 使用 `@types/jest` 提供類型支援
+- 配置 Jest 環境變數
+- 設定測試資料庫和 mock 服務
+- 實現測試資料的清理和重置
+
+## 持續整合
+
+- 在 CI/CD 流程中執行測試
+- 使用 GitHub Actions 進行自動化測試
+- 生成測試覆蓋率報告
+- 實現測試失敗時的通知機制

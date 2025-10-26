@@ -1,0 +1,45 @@
+---
+globs: rollup.config.mjs,package.json,*.json
+description: 建置和部署配置指南
+---
+
+# 建置和部署指南
+
+## 建置工具
+
+- 使用 **Rollup** 作為主要打包工具
+- 使用 **TypeScript** 編譯器進行類型檢查
+- 使用 **Biome** 進行程式碼格式化和檢查
+
+## 建置腳本
+
+- `yarn start`: 開發模式，監聽檔案變化
+- `yarn build`: 標準建置
+- `yarn build:prod`: 生產建置並打包為 ZIP 檔案
+- `yarn lint`: 程式碼品質檢查
+
+## 配置檔案
+
+- [rollup.config.mjs](mdc:rollup.config.mjs): Rollup 打包配置
+- [tsconfig.json](mdc:tsconfig.json): TypeScript 編譯設定
+- [biome.json](mdc:biome.json): 程式碼格式化和檢查規則
+
+## 發布流程
+
+1. 更新版本號在 [package.json](mdc:package.json)
+2. 執行 `yarn build:prod` 建置生產版本
+3. 檢查 [releases/](mdc:releases/) 目錄中的 ZIP 檔案
+4. 上傳到 Chrome Web Store
+
+## 開發環境
+
+- 需要 Node.js >= 18.0.0
+- 使用 Yarn 4.4.0 作為套件管理器
+- 支援 Chrome 擴充功能開發者模式載入
+
+## 檔案結構
+
+- `src/`: 原始碼目錄
+- `dist/`: 建置輸出目錄
+- `releases/`: 發布檔案目錄
+- 所有資源檔案都會被複製到 `dist/` 目錄

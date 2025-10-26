@@ -22,10 +22,10 @@ export default {
       preventAssignment: true
     }),
     chromeExtension(),
-    simpleReloader(),
+    ...(isProduction ? [] : [simpleReloader()]),
     resolve(),
     commonjs(),
     typescript(),
-    emptyDir(),
+    emptyDir()
   ]
 };

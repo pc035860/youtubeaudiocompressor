@@ -1,0 +1,66 @@
+---
+globs: src/scripts/content-script.ts
+description: 音頻處理和 Web Audio API 使用指南
+---
+
+# 音頻處理指南
+
+## Web Audio API 使用
+
+- 使用 `AudioContext` 創建音頻上下文
+- 使用 `DynamicsCompressorNode` 實現音頻壓縮
+- 正確管理音頻節點的連接和斷開
+- 支援多平台的音頻處理
+
+## 平台特定處理
+
+- **YouTube**: 使用標準 `video` 選擇器
+- **Twitch**: 使用 `video[data-a-player-type], video` 選擇器
+- **Bilibili**: 使用標準 `video` 選擇器
+- 動態檢測平台並應用相應的處理邏輯
+
+## 壓縮參數配置
+
+```typescript
+// 標準壓縮參數
+compressNode.threshold.setValueAtTime(-50, context.currentTime);
+compressNode.knee.setValueAtTime(40, context.currentTime);
+compressNode.ratio.setValueAtTime(12, context.currentTime);
+compressNode.attack.setValueAtTime(0, context.currentTime);
+compressNode.release.setValueAtTime(0.25, context.currentTime);
+```
+
+## 音頻源管理
+
+- 維護音頻源陣列以追蹤所有處理中的音頻
+- 為每個音頻源分配唯一 ID
+- 實現音頻源的動態添加和移除
+- 支援跨平台的音頻源追蹤
+
+## 多平台整合
+
+- 使用 `getCurrentPlatform()` 函數檢測當前平台
+- 使用 `getVideoSelector()` 函數獲取平台特定的選擇器
+- 實現統一的音頻處理邏輯
+- 支援不同平台的播放器特性
+
+## 錯誤處理
+
+- 使用 try-catch 包裝音頻操作
+- 處理音頻上下文創建失敗
+- 優雅地處理音頻節點連接錯誤
+- 實現平台特定的錯誤處理
+
+## 效能優化
+
+- 避免重複創建音頻上下文
+- 正確清理音頻資源
+- 使用適當的音頻參數以平衡品質和效能
+- 實現平台特定的效能優化
+
+## 狀態管理
+
+- 實現壓縮狀態的持久化儲存
+- 提供視覺回饋顯示當前壓縮狀態
+- 支援即時切換壓縮功能
+- 跨平台狀態同步
