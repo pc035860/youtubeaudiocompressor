@@ -1,14 +1,16 @@
 /// <reference types="chrome"/>
 
+import { SUPPORTED_DOMAINS } from "./constants";
+
 // Background service worker for Multi-Platform Audio Compressor
 
 interface CompressionMessage {
-	type: 'TOGGLE_COMPRESSION';
+	type: "TOGGLE_COMPRESSION";
 	compress: boolean;
 }
 
 interface IconMessage {
-	type: 'UPDATE_ICON';
+	type: "UPDATE_ICON";
 	compress: boolean;
 }
 
@@ -19,7 +21,7 @@ interface StorageResult {
 // 獲取當前壓縮狀態
 function getCompressionState(): Promise<boolean> {
 	return new Promise((resolve) => {
-		chrome.storage.local.get(['compress'], (result: StorageResult) => {
+		chrome.storage.local.get(["compress"], (result: StorageResult) => {
 			resolve(result.compress ?? false);
 		});
 	});
@@ -37,8 +39,8 @@ function setCompressionState(compress: boolean): Promise<void> {
 // 更新 ActionButton 圖示狀態
 function updateActionButtonIcon(compress: boolean): void {
 	// 根據命名邏輯：compress=true 時使用無後綴，compress=false 時使用 -off 後綴
-	const iconSuffix = compress ? '' : '-off';
-	
+	const iconSuffix = compress ? "" : "-off";
+
 	// 設定圖示狀態 - 使用 chrome.runtime.getURL 獲取正確的 URL
 	const iconPaths = {
 		16: chrome.runtime.getURL(`assets/icons/16${iconSuffix}.png`),
@@ -48,35 +50,31 @@ function updateActionButtonIcon(compress: boolean): void {
 		64: chrome.runtime.getURL(`assets/icons/64${iconSuffix}.png`),
 		128: chrome.runtime.getURL(`assets/icons/128${iconSuffix}.png`),
 		256: chrome.runtime.getURL(`assets/icons/256${iconSuffix}.png`),
-		512: chrome.runtime.getURL(`assets/icons/512${iconSuffix}.png`)
+		512: chrome.runtime.getURL(`assets/icons/512${iconSuffix}.png`),
 	};
-	
+
 	chrome.action.setIcon({
-		path: iconPaths
+		path: iconPaths,
 	});
-	
+
 	// 移除 badge，改用圖示表示狀態
-	chrome.action.setBadgeText({ text: '' });
-	
+	chrome.action.setBadgeText({ text: "" });
+
 	// 設定標題
 	chrome.action.setTitle({
-		title: compress ? 'Audio Compression: ON' : 'Audio Compression: OFF'
+		title: compress ? "Audio Compression: ON" : "Audio Compression: OFF",
 	});
 }
 
 // 向所有支援的 tab 發送狀態變更訊息
 async function notifyAllTabs(compress: boolean): Promise<void> {
 	const tabs = await chrome.tabs.query({
-		url: [
-			'https://www.youtube.com/*',
-			'https://www.twitch.tv/*',
-			'https://www.bilibili.com/*'
-		]
+		url: SUPPORTED_DOMAINS,
 	});
 
 	const message: CompressionMessage = {
-		type: 'TOGGLE_COMPRESSION',
-		compress
+		type: "TOGGLE_COMPRESSION",
+		compress,
 	};
 
 	for (const tab of tabs) {
@@ -85,7 +83,7 @@ async function notifyAllTabs(compress: boolean): Promise<void> {
 				await chrome.tabs.sendMessage(tab.id, message);
 			} catch (error) {
 				// 忽略無法發送訊息的 tab（可能是頁面未載入 content script）
-				console.debug('Failed to send message to tab:', tab.id, error);
+				console.debug("Failed to send message to tab:", tab.id, error);
 			}
 		}
 	}
@@ -99,7 +97,7 @@ async function initializeActionButton() {
 		const compress = await getCompressionState();
 		updateActionButtonIcon(compress);
 	} catch (error) {
-		console.error('Error initializing action button:', error);
+		console.error("Error initializing action button:", error);
 	}
 }
 
@@ -111,16 +109,18 @@ chrome.runtime.onInstalled.addListener(initializeActionButton);
 initializeActionButton();
 
 // 處理來自 content script 和 popup 的訊息
-chrome.runtime.onMessage.addListener((message: CompressionMessage | IconMessage, sender, sendResponse) => {
-	if (message.type === 'TOGGLE_COMPRESSION') {
-		// 同步狀態到 storage 並更新 UI
-		setCompressionState(message.compress).then(() => {
+chrome.runtime.onMessage.addListener(
+	(message: CompressionMessage | IconMessage, sender, sendResponse) => {
+		if (message.type === "TOGGLE_COMPRESSION") {
+			// 同步狀態到 storage 並更新 UI
+			setCompressionState(message.compress).then(() => {
+				updateActionButtonIcon(message.compress);
+				notifyAllTabs(message.compress);
+			});
+		} else if (message.type === "UPDATE_ICON") {
+			// 只更新圖示狀態
 			updateActionButtonIcon(message.compress);
-			notifyAllTabs(message.compress);
-		});
-	} else if (message.type === 'UPDATE_ICON') {
-		// 只更新圖示狀態
-		updateActionButtonIcon(message.compress);
-	}
-	sendResponse({ success: true });
-});
+		}
+		sendResponse({ success: true });
+	},
+);

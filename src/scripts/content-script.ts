@@ -1,5 +1,7 @@
 /// <reference types="chrome"/>
 
+import { getCurrentPlatform, getVideoSelector } from "./constants";
+
 const sources: {
 	source: MediaElementAudioSourceNode;
 	compression: DynamicsCompressorNode;
@@ -7,30 +9,6 @@ const sources: {
 	id: string;
 	context: AudioContext;
 }[] = [];
-
-// 平台檢測
-function getCurrentPlatform(): 'youtube' | 'twitch' | 'bilibili' | 'unknown' {
-	const hostname = window.location.hostname;
-	if (hostname.includes('youtube.com')) return 'youtube';
-	if (hostname.includes('twitch.tv')) return 'twitch';
-	if (hostname.includes('bilibili.com')) return 'bilibili';
-	return 'unknown';
-}
-
-// 根據平台獲取影片選擇器
-function getVideoSelector(): string {
-	const platform = getCurrentPlatform();
-	switch (platform) {
-		case 'youtube':
-			return 'video';
-		case 'twitch':
-			return 'video[data-a-player-type], video';
-		case 'bilibili':
-			return 'video';
-		default:
-			return 'video';
-	}
-}
 
 async function compressVideoNode(node: HTMLVideoElement) {
 	const found = sources.find((x) => x.id === node.id);
@@ -65,7 +43,13 @@ async function compressVideoNode(node: HTMLVideoElement) {
 	compressNode.connect(gainNode);
 	gainNode.connect(context.destination);
 
-	sources.push({ source, compression: compressNode, gainNode, id: node.id, context });
+	sources.push({
+		source,
+		compression: compressNode,
+		gainNode,
+		id: node.id,
+		context,
+	});
 
 	return;
 }
@@ -104,11 +88,13 @@ function setGain(value: number): Promise<number> {
 
 async function updateCompression(compress: boolean) {
 	if (compress) {
-		document.querySelectorAll(getVideoSelector()).forEach((video) => {
-			if (video instanceof HTMLVideoElement) {
-				compressVideoNode(video);
-			}
-		});
+		document
+			.querySelectorAll(getVideoSelector(getCurrentPlatform()))
+			.forEach((video) => {
+				if (video instanceof HTMLVideoElement) {
+					compressVideoNode(video);
+				}
+			});
 	} else {
 		for (const { source, compression, context } of sources) {
 			source.disconnect(compression);
@@ -121,11 +107,11 @@ async function toggleCompression() {
 	const compress = await getIfCompress();
 	await setCompression(!compress);
 	updateCompression(!compress);
-	
+
 	// 通知 background script 狀態變更
 	chrome.runtime.sendMessage({
-		type: 'TOGGLE_COMPRESSION',
-		compress: !compress
+		type: "TOGGLE_COMPRESSION",
+		compress: !compress,
 	});
 }
 
@@ -137,14 +123,20 @@ async function updateGain(gain: number) {
 }
 
 // 監聽來自 background script 和 popup 的訊息
-chrome.runtime.onMessage.addListener((message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-	if (message.type === 'TOGGLE_COMPRESSION') {
-		updateCompression(message.compress);
-	} else if (message.type === 'UPDATE_GAIN') {
-		updateGain(message.gain);
-	}
-	sendResponse({ success: true });
-});
+chrome.runtime.onMessage.addListener(
+	(
+		message: any,
+		sender: chrome.runtime.MessageSender,
+		sendResponse: (response?: any) => void,
+	) => {
+		if (message.type === "TOGGLE_COMPRESSION") {
+			updateCompression(message.compress);
+		} else if (message.type === "UPDATE_GAIN") {
+			updateGain(message.gain);
+		}
+		sendResponse({ success: true });
+	},
+);
 
 async function run() {
 	// 初始化壓縮狀態
@@ -158,7 +150,9 @@ async function run() {
 		mutations.forEach((mutation) => {
 			mutation.addedNodes.forEach((node) => {
 				if (node instanceof Element) {
-					const videos = node.querySelectorAll(getVideoSelector());
+					const videos = node.querySelectorAll(
+						getVideoSelector(getCurrentPlatform()),
+					);
 					videos.forEach((video) => {
 						if (video instanceof HTMLVideoElement) {
 							// 檢查是否需要壓縮
@@ -178,7 +172,7 @@ async function run() {
 	const targetNode = document.documentElement || document.body;
 	observer.observe(targetNode, {
 		childList: true,
-		subtree: true
+		subtree: true,
 	});
 
 	// 清理資源
@@ -194,7 +188,9 @@ run();
 // 同時也監聽 DOMContentLoaded 作為備用
 document.addEventListener("DOMContentLoaded", () => {
 	// 再次檢查是否有遺漏的 video 元素
-	const existingVideos = document.querySelectorAll(getVideoSelector());
+	const existingVideos = document.querySelectorAll(
+		getVideoSelector(getCurrentPlatform()),
+	);
 	existingVideos.forEach((video) => {
 		if (video instanceof HTMLVideoElement) {
 			getIfCompress().then((compress) => {
@@ -210,7 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("load", () => {
 	// 延遲一點時間確保所有動態內容都已載入
 	setTimeout(() => {
-		const existingVideos = document.querySelectorAll(getVideoSelector());
+		const existingVideos = document.querySelectorAll(
+			getVideoSelector(getCurrentPlatform()),
+		);
 		existingVideos.forEach((video) => {
 			if (video instanceof HTMLVideoElement) {
 				getIfCompress().then((compress) => {
