@@ -40,6 +40,21 @@
     "256": "assets/icons/256.png",
     "512": "assets/icons/512.png"
   },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/icons/16-off.png",
+        "assets/icons/24-off.png",
+        "assets/icons/32-off.png",
+        "assets/icons/48-off.png",
+        "assets/icons/64-off.png",
+        "assets/icons/128-off.png",
+        "assets/icons/256-off.png",
+        "assets/icons/512-off.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "browser_specific_settings": {
     "gecko": {
       "id": "youtubeaudiocompressor@dancodes.online"

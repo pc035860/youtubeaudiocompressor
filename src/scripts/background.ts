@@ -31,13 +31,27 @@ function setCompressionState(compress: boolean): Promise<void> {
 
 // 更新 ActionButton 圖示狀態
 function updateActionButtonIcon(compress: boolean): void {
-	// 設定 badge 來顯示狀態
-	chrome.action.setBadgeText({
-		text: compress ? 'ON' : 'OFF'
+	// 根據命名邏輯：compress=true 時使用無後綴，compress=false 時使用 -off 後綴
+	const iconSuffix = compress ? '' : '-off';
+	
+	// 設定圖示狀態 - 使用 chrome.runtime.getURL 獲取正確的 URL
+	const iconPaths = {
+		16: chrome.runtime.getURL(`assets/icons/16${iconSuffix}.png`),
+		24: chrome.runtime.getURL(`assets/icons/24${iconSuffix}.png`),
+		32: chrome.runtime.getURL(`assets/icons/32${iconSuffix}.png`),
+		48: chrome.runtime.getURL(`assets/icons/48${iconSuffix}.png`),
+		64: chrome.runtime.getURL(`assets/icons/64${iconSuffix}.png`),
+		128: chrome.runtime.getURL(`assets/icons/128${iconSuffix}.png`),
+		256: chrome.runtime.getURL(`assets/icons/256${iconSuffix}.png`),
+		512: chrome.runtime.getURL(`assets/icons/512${iconSuffix}.png`)
+	};
+	
+	chrome.action.setIcon({
+		path: iconPaths
 	});
-	chrome.action.setBadgeBackgroundColor({
-		color: compress ? '#4CAF50' : '#9E9E9E'
-	});
+	
+	// 移除 badge，改用圖示表示狀態
+	chrome.action.setBadgeText({ text: '' });
 	
 	// 設定標題
 	chrome.action.setTitle({
