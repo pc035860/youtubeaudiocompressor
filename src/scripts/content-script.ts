@@ -36,11 +36,15 @@ async function compressVideoNode(node: HTMLVideoElement) {
 	const found = sources.find((x) => x.id === node.id);
 	if (found) {
 		try {
-			found.source.disconnect(found.gainNode);
+			found.source.disconnect();
 		} catch {
 			// ignore this error
 		}
-		return found.source.connect(found.compression);
+		// 重新建立正確的音頻鏈：source -> compression -> gainNode -> destination
+		found.source.connect(found.compression);
+		found.compression.connect(found.gainNode);
+		found.gainNode.connect(found.context.destination);
+		return;
 	}
 
 	const context = new AudioContext();
