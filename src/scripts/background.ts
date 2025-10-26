@@ -7,6 +7,11 @@ interface CompressionMessage {
 	compress: boolean;
 }
 
+interface IconMessage {
+	type: 'UPDATE_ICON';
+	compress: boolean;
+}
+
 interface StorageResult {
 	compress?: boolean;
 }
@@ -86,19 +91,7 @@ async function notifyAllTabs(compress: boolean): Promise<void> {
 	}
 }
 
-// 監聽 ActionButton 點擊事件
-chrome.action.onClicked.addListener(async (tab) => {
-	try {
-		const currentState = await getCompressionState();
-		const newState = !currentState;
-		
-		await setCompressionState(newState);
-		updateActionButtonIcon(newState);
-		await notifyAllTabs(newState);
-	} catch (error) {
-		console.error('Error toggling compression:', error);
-	}
-});
+// ActionButton 點擊事件已移除，改用 popup UI
 
 // 初始化：設定正確的圖示狀態
 async function initializeActionButton() {
@@ -117,14 +110,17 @@ chrome.runtime.onInstalled.addListener(initializeActionButton);
 // 立即初始化（如果擴充功能已經載入）
 initializeActionButton();
 
-// 處理來自 content script 的訊息
-chrome.runtime.onMessage.addListener((message: CompressionMessage, sender, sendResponse) => {
+// 處理來自 content script 和 popup 的訊息
+chrome.runtime.onMessage.addListener((message: CompressionMessage | IconMessage, sender, sendResponse) => {
 	if (message.type === 'TOGGLE_COMPRESSION') {
 		// 同步狀態到 storage 並更新 UI
 		setCompressionState(message.compress).then(() => {
 			updateActionButtonIcon(message.compress);
 			notifyAllTabs(message.compress);
 		});
+	} else if (message.type === 'UPDATE_ICON') {
+		// 只更新圖示狀態
+		updateActionButtonIcon(message.compress);
 	}
 	sendResponse({ success: true });
 });

@@ -6,6 +6,7 @@ import typescript from '@rollup/plugin-typescript';
 
 import replace from '@rollup/plugin-replace';
 import { chromeExtension, simpleReloader } from 'rollup-plugin-chrome-extension';
+import copy from 'rollup-plugin-copy';
 import { emptyDir } from 'rollup-plugin-empty-dir';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -26,6 +27,12 @@ export default {
     resolve(),
     commonjs(),
     typescript(),
+    copy({
+      targets: [
+        { src: 'src/popup.html', dest: 'dist' },
+        { src: 'src/popup.css', dest: 'dist' }
+      ]
+    }),
     emptyDir()
   ]
 };

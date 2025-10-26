@@ -3,7 +3,8 @@
   "name": "Multi-Platform Audio Compressor",
   "permissions": ["storage", "activeTab"],
   "action": {
-    "default_title": "Toggle Audio Compression",
+    "default_title": "Audio Compressor Settings",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "assets/icons/16.png",
       "24": "assets/icons/24.png",
