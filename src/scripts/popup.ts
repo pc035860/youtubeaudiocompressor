@@ -1,7 +1,5 @@
 /// <reference types="chrome"/>
 
-import { SUPPORTED_DOMAINS } from "./constants";
-
 interface StorageData {
 	compress?: boolean;
 	gain?: number;
@@ -28,6 +26,7 @@ const toggleText = toggleBtn.querySelector(".toggle-text") as HTMLSpanElement;
 const gainSlider = document.getElementById("gainSlider") as HTMLInputElement;
 const gainValue = document.getElementById("gainValue") as HTMLSpanElement;
 const statusText = document.getElementById("statusText") as HTMLSpanElement;
+const optionsBtn = document.getElementById("optionsBtn") as HTMLButtonElement;
 
 // 從 storage 讀取設定
 async function getSettings(): Promise<{ compress: boolean; gain: number }> {
@@ -79,14 +78,13 @@ async function notifyBackground(compress: boolean): Promise<void> {
 	}
 }
 
-// 通知所有支援的 tab
+// 通知所有 tab（全域廣播）
+// content-script 會根據規則匹配自行決定是否處理
 async function notifyTabs(
 	message: CompressionMessage | GainMessage,
 ): Promise<void> {
 	try {
-		const tabs = await chrome.tabs.query({
-			url: SUPPORTED_DOMAINS,
-		});
+		const tabs = await chrome.tabs.query({});
 
 		for (const tab of tabs) {
 			if (tab.id) {
@@ -152,6 +150,11 @@ async function handleGainChange(): Promise<void> {
 	}
 }
 
+// 處理開啟 options 頁面
+function handleOptionsClick(): void {
+	chrome.runtime.openOptionsPage();
+}
+
 // 初始化
 async function initialize(): Promise<void> {
 	try {
@@ -167,6 +170,7 @@ async function initialize(): Promise<void> {
 // 事件監聽器
 toggleBtn.addEventListener("click", handleToggleClick);
 gainSlider.addEventListener("input", handleGainChange);
+optionsBtn.addEventListener("click", handleOptionsClick);
 
 // 初始化
 document.addEventListener("DOMContentLoaded", initialize);

@@ -1,33 +1,27 @@
 /// <reference types="chrome"/>
 
-import { getCurrentPlatform, getVideoSelector } from "./constants";
+import { getMatchedRule } from "./domain-rules";
+import type { DomainRule } from "./domain-rules";
 
-const sources: {
+// 當前匹配的網域規則
+let currentRule: DomainRule | null = null;
+
+// 快取壓縮狀態，避免 Observer 頻繁讀取 storage
+let compressState = false;
+
+// 使用 Map 管理 video 元素與音訊處理鏈的對應關係
+// 優勢：1) 不修改 DOM 屬性 2) 可遍歷（用於 disable/updateGain）3) 可主動清理
+interface AudioEntry {
 	source: MediaElementAudioSourceNode;
 	compression: DynamicsCompressorNode;
 	gainNode: GainNode;
-	id: string;
 	context: AudioContext;
 	isActive: boolean;
-}[] = [];
-
-// 用於生成唯一 ID 的計數器
-let uniqueVideoCounter = 0;
-
-// 為 video 元素生成或獲取唯一 ID
-function getOrGenerateVideoId(video: HTMLVideoElement): string {
-	if (!video.id) {
-		video.id = `audiocomp-${Date.now()}-${++uniqueVideoCounter}`;
-	}
-	return video.id;
 }
 
-// 檢查 video 元素是否已經被處理過
-function isVideoProcessed(video: HTMLVideoElement): boolean {
-	return sources.some((source) => source.id === video.id);
-}
+const videoAudioMap = new Map<HTMLVideoElement, AudioEntry>();
 
-function connectCompressionChain(entry: (typeof sources)[number]) {
+function connectCompressionChain(entry: AudioEntry) {
 	const { source, compression, gainNode, context } = entry;
 	try {
 		source.disconnect();
@@ -51,7 +45,7 @@ function connectCompressionChain(entry: (typeof sources)[number]) {
 	entry.isActive = true;
 }
 
-function bypassCompressionChain(entry: (typeof sources)[number]) {
+function bypassCompressionChain(entry: AudioEntry) {
 	const { source, compression, gainNode, context } = entry;
 	try {
 		source.disconnect();
@@ -75,50 +69,63 @@ function bypassCompressionChain(entry: (typeof sources)[number]) {
 
 // 統一處理現有的 video 元素（防重複）
 function processExistingVideos(compress: boolean) {
-	const platform = getCurrentPlatform();
-	const existingVideos = document.querySelectorAll(getVideoSelector(platform));
+	if (!currentRule) {
+		return; // 沒有匹配的規則，不處理
+	}
+
+	const existingVideos = document.querySelectorAll(currentRule.selector);
 	for (let i = 0; i < existingVideos.length; i++) {
 		const video = existingVideos[i] as HTMLVideoElement;
 		if (video instanceof HTMLVideoElement) {
 			if (compress) {
-				compressVideoNode(video);
+				// 檢查是否已處理過（使用 Map）
+				if (!videoAudioMap.has(video)) {
+					compressVideoNode(video);
+				}
 			}
 		}
 	}
 }
 
-// 清理音訊資源
-function cleanupAudioResources() {
-	for (const entry of sources) {
-		const { source, compression, gainNode, context } = entry;
-		try {
-			source.disconnect();
-		} catch (error) {
-			// 忽略清理錯誤
-		}
-		try {
-			compression.disconnect();
-		} catch (error) {
-			// 忽略清理錯誤
-		}
-		try {
-			gainNode.disconnect();
-		} catch (error) {
-			// 忽略清理錯誤
-		}
-		context.close().catch(() => undefined);
+// 清理單個 video 元素的音訊資源
+function cleanupVideoAudio(video: HTMLVideoElement) {
+	const entry = videoAudioMap.get(video);
+	if (!entry) return;
+
+	const { source, compression, gainNode, context } = entry;
+	try {
+		source.disconnect();
+	} catch (error) {
+		// 忽略清理錯誤
 	}
-	sources.length = 0; // 清空陣列
+	try {
+		compression.disconnect();
+	} catch (error) {
+		// 忽略清理錯誤
+	}
+	try {
+		gainNode.disconnect();
+	} catch (error) {
+		// 忽略清理錯誤
+	}
+
+	context.close().catch(() => undefined);
+	videoAudioMap.delete(video);
+}
+
+// 清理所有音訊資源
+function cleanupAllAudioResources() {
+	for (const [video, entry] of videoAudioMap) {
+		cleanupVideoAudio(video);
+	}
+	videoAudioMap.clear();
 }
 
 async function compressVideoNode(node: HTMLVideoElement) {
-	// 確保 video 元素有唯一 ID
-	const videoId = getOrGenerateVideoId(node);
-
-	// 檢查是否已經處理過這個 video 元素
-	const found = sources.find((x) => x.id === videoId);
-	if (found) {
-		connectCompressionChain(found);
+	// 檢查是否已經處理過這個 video 元素（使用 Map）
+	const existingEntry = videoAudioMap.get(node);
+	if (existingEntry) {
+		connectCompressionChain(existingEntry);
 		return;
 	}
 
@@ -137,18 +144,18 @@ async function compressVideoNode(node: HTMLVideoElement) {
 	gainNode.gain.setValueAtTime(currentGain, context.currentTime);
 
 	const source = context.createMediaElementSource(node);
-	const entry = {
+	const entry: AudioEntry = {
 		source,
 		compression: compressNode,
 		gainNode,
-		id: videoId,
 		context,
 		isActive: true,
 	};
 
 	connectCompressionChain(entry);
 
-	sources.push(entry);
+	// 儲存到 Map
+	videoAudioMap.set(node, entry);
 
 	return;
 }
@@ -196,11 +203,9 @@ async function updateCompression(compress: boolean) {
 }
 
 function disableCompression() {
-	for (const entry of sources) {
-		if (entry.isActive) {
-			bypassCompressionChain(entry);
-		}
-	}
+	// MVP 策略：立即釋放所有 AudioContext 資源
+	// 優點：節省記憶體，缺點：重新開啟需要重建
+	cleanupAllAudioResources();
 }
 
 async function toggleCompression() {
@@ -217,7 +222,8 @@ async function toggleCompression() {
 
 // 更新所有音頻源的 gain 值
 async function updateGain(gain: number) {
-	for (const { gainNode, context } of sources) {
+	for (const [video, entry] of videoAudioMap) {
+		const { gainNode, context } = entry;
 		gainNode.gain.setValueAtTime(gain, context.currentTime);
 	}
 }
@@ -230,7 +236,9 @@ chrome.runtime.onMessage.addListener(
 		sendResponse: (response?: { success: boolean }) => void,
 	) => {
 		if (message.type === "TOGGLE_COMPRESSION") {
-			updateCompression(!!message.compress);
+			// 更新快取狀態
+			compressState = !!message.compress;
+			updateCompression(compressState);
 		} else if (message.type === "UPDATE_GAIN") {
 			updateGain(message.gain ?? 1.0);
 		}
@@ -239,44 +247,82 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function run() {
-	// 初始化壓縮狀態
-	const shouldCompress = await getIfCompress();
-	updateCompression(shouldCompress);
+	// 取得當前網域的匹配規則
+	currentRule = await getMatchedRule(window.location.hostname);
+
+	// 如果沒有匹配的規則，不處理這個網域
+	if (!currentRule) {
+		console.log(
+			"[Audio Compressor] No matching rule for:",
+			window.location.hostname,
+		);
+		return;
+	}
+
+	console.log("[Audio Compressor] Using rule:", currentRule);
+
+	// 初始化壓縮狀態並快取
+	compressState = await getIfCompress();
+	updateCompression(compressState);
 
 	// 鍵盤快捷鍵支援已移除，改用 popup UI
 
-	// 監聽新影片元素的出現
+	// 監聽新影片元素的出現與移除
 	const observer = new MutationObserver((mutations) => {
+		if (!currentRule) {
+			return; // 沒有匹配的規則，不處理
+		}
+
 		for (let i = 0; i < mutations.length; i++) {
 			const mutation = mutations[i];
+
+			// 處理新增的節點
 			for (let j = 0; j < mutation.addedNodes.length; j++) {
 				const node = mutation.addedNodes[j] as Node;
-				const platform = getCurrentPlatform();
 				// 檢查新增的節點本身是否是 video
 				if (
 					node instanceof HTMLVideoElement &&
-					node.matches(getVideoSelector(platform))
+					node.matches(currentRule.selector)
 				) {
-					// 檢查是否需要壓縮且是否已處理過
-					getIfCompress().then((compress) => {
-						if (compress && !isVideoProcessed(node)) {
-							compressVideoNode(node);
-						}
-					});
+					// 使用快取的壓縮狀態，避免頻繁讀取 storage
+					if (compressState && !videoAudioMap.has(node)) {
+						compressVideoNode(node);
+					}
 				}
 
 				// 檢查新增節點的子元素中的 video
 				if (node instanceof Element) {
-					const videos = node.querySelectorAll(getVideoSelector(platform));
+					const videos = node.querySelectorAll(currentRule.selector);
 					for (let k = 0; k < videos.length; k++) {
 						const video = videos[k] as HTMLVideoElement;
 						if (video instanceof HTMLVideoElement) {
-							// 檢查是否需要壓縮且是否已處理過
-							getIfCompress().then((compress) => {
-								if (compress && !isVideoProcessed(video)) {
-									compressVideoNode(video);
-								}
-							});
+							// 使用快取的壓縮狀態，避免頻繁讀取 storage
+							if (compressState && !videoAudioMap.has(video)) {
+								compressVideoNode(video);
+							}
+						}
+					}
+				}
+			}
+
+			// 處理移除的節點（資源回收）
+			for (let j = 0; j < mutation.removedNodes.length; j++) {
+				const node = mutation.removedNodes[j] as Node;
+				// 檢查移除的節點本身是否是 video
+				if (
+					node instanceof HTMLVideoElement &&
+					node.matches(currentRule.selector)
+				) {
+					cleanupVideoAudio(node);
+				}
+
+				// 檢查移除節點的子元素中的 video
+				if (node instanceof Element) {
+					const videos = node.querySelectorAll(currentRule.selector);
+					for (let k = 0; k < videos.length; k++) {
+						const video = videos[k] as HTMLVideoElement;
+						if (video instanceof HTMLVideoElement) {
+							cleanupVideoAudio(video);
 						}
 					}
 				}
@@ -294,7 +340,7 @@ async function run() {
 	// 清理資源
 	window.addEventListener("unload", () => {
 		observer.disconnect();
-		cleanupAudioResources();
+		cleanupAllAudioResources();
 	});
 }
 
@@ -304,10 +350,8 @@ run();
 
 // DOMContentLoaded 事件監聽：檢查頁面載入時可能存在的 video
 document.addEventListener("DOMContentLoaded", () => {
-	// 使用防重複機制處理現有的 video 元素
-	getIfCompress().then((compress) => {
-		if (compress) {
-			processExistingVideos(true);
-		}
-	});
+	// 使用快取的狀態，避免頻繁讀取 storage
+	if (compressState) {
+		processExistingVideos(true);
+	}
 });

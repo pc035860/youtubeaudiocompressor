@@ -1,7 +1,5 @@
 /// <reference types="chrome"/>
 
-import { SUPPORTED_DOMAINS } from "./constants";
-
 // Background service worker for Multi-Platform Audio Compressor
 
 interface CompressionMessage {
@@ -66,11 +64,10 @@ function updateActionButtonIcon(compress: boolean): void {
 	});
 }
 
-// 向所有支援的 tab 發送狀態變更訊息
+// 向所有 tab 發送狀態變更訊息（全域廣播）
+// content-script 會根據規則匹配自行決定是否處理
 async function notifyAllTabs(compress: boolean): Promise<void> {
-	const tabs = await chrome.tabs.query({
-		url: SUPPORTED_DOMAINS,
-	});
+	const tabs = await chrome.tabs.query({});
 
 	const message: CompressionMessage = {
 		type: "TOGGLE_COMPRESSION",

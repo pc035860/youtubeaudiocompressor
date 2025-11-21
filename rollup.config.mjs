@@ -30,7 +30,9 @@ export default {
     copy({
       targets: [
         { src: 'src/popup.html', dest: 'dist' },
-        { src: 'src/popup.css', dest: 'dist' }
+        { src: 'src/popup.css', dest: 'dist' },
+        { src: 'src/options.html', dest: 'dist' },
+        { src: 'src/options.css', dest: 'dist' }
       ]
     }),
     emptyDir()

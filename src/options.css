@@ -1,0 +1,563 @@
+/* Options Page Styles */
+
+/* ============================================================================
+   Base Styles (繼承 popup.css 設計系統)
+   ============================================================================ */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	min-width: 600px;
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 32px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	background: #f8f9fa;
+	color: #333;
+	line-height: 1.5;
+}
+
+.container {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+.header {
+	text-align: center;
+	margin-bottom: 8px;
+}
+
+.header h1 {
+	font-size: 28px;
+	font-weight: 600;
+	color: #1a1a1a;
+	margin-bottom: 4px;
+}
+
+.subtitle {
+	font-size: 14px;
+	color: #6c757d;
+}
+
+/* ============================================================================
+   Card Component (參考圖片的卡片式設計)
+   ============================================================================ */
+.card {
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+}
+
+.card-header {
+	padding: 20px 24px 16px;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.card-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1a1a1a;
+	margin-bottom: 4px;
+}
+
+.card-description {
+	font-size: 13px;
+	color: #6c757d;
+}
+
+.card-body {
+	padding: 24px;
+}
+
+/* ============================================================================
+   Form Styles
+   ============================================================================ */
+.rule-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.form-label {
+	font-size: 14px;
+	font-weight: 500;
+	color: #495057;
+}
+
+.form-input {
+	padding: 10px 12px;
+	border: 1px solid #ced4da;
+	border-radius: 6px;
+	font-size: 14px;
+	font-family: inherit;
+	color: #495057;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+	outline: none;
+	border-color: #007bff;
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-input::placeholder {
+	color: #adb5bd;
+}
+
+.form-hint {
+	font-size: 12px;
+	color: #6c757d;
+	font-style: italic;
+}
+
+/* ============================================================================
+   Button Styles
+   ============================================================================ */
+.btn {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: inherit;
+}
+
+.btn-primary {
+	background: #007bff;
+	color: white;
+}
+
+.btn-primary:hover {
+	background: #0056b3;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+	background: #6c757d;
+	color: white;
+}
+
+.btn-secondary:hover {
+	background: #5a6268;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+}
+
+.btn-danger {
+	background: #dc3545;
+	color: white;
+}
+
+.btn-danger:hover {
+	background: #c82333;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+}
+
+.btn-sm {
+	padding: 6px 12px;
+	font-size: 13px;
+}
+
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+/* ============================================================================
+   Table Styles (參考圖片的表格設計)
+   ============================================================================ */
+.table-container {
+	overflow-x: auto;
+}
+
+.rules-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.rules-table thead th {
+	padding: 12px 16px;
+	text-align: left;
+	font-size: 13px;
+	font-weight: 600;
+	color: #495057;
+	border-bottom: 2px solid #e9ecef;
+	background: #f8f9fa;
+}
+
+.rules-table tbody td {
+	padding: 16px;
+	border-bottom: 1px solid #e9ecef;
+	vertical-align: middle;
+}
+
+.rules-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.rules-table tbody tr:hover {
+	background: #f8f9fa;
+}
+
+/* Column widths */
+.col-checkbox {
+	width: 60px;
+	text-align: center;
+}
+
+.col-domain {
+	width: 35%;
+}
+
+.col-selector {
+	width: 40%;
+}
+
+.col-actions {
+	width: auto;
+	text-align: right;
+}
+
+/* Checkbox styling */
+.rule-checkbox {
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+	accent-color: #007bff;
+}
+
+/* Domain and selector display */
+.domain-text {
+	font-size: 14px;
+	color: #1a1a1a;
+	font-weight: 500;
+	font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+}
+
+.selector-text {
+	font-size: 13px;
+	color: #6c757d;
+	font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+}
+
+/* Action buttons container */
+.action-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+/* Loading and Empty States */
+.loading-row td,
+.empty-state {
+	text-align: center;
+	padding: 32px;
+}
+
+.loading-text,
+.empty-text {
+	color: #6c757d;
+	font-size: 14px;
+	font-style: italic;
+}
+
+/* Screen reader only */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* ============================================================================
+   Status Message
+   ============================================================================ */
+.status-message {
+	position: fixed;
+	top: 24px;
+	right: 24px;
+	padding: 12px 20px;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 500;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	animation: slideIn 0.3s ease;
+	z-index: 1000;
+}
+
+.status-message.success {
+	background: #28a745;
+	color: white;
+}
+
+.status-message.error {
+	background: #dc3545;
+	color: white;
+}
+
+@keyframes slideIn {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+/* ============================================================================
+   Modal Styles
+   ============================================================================ */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(4px);
+}
+
+.modal-content {
+	position: relative;
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	width: 90%;
+	max-width: 500px;
+	animation: modalIn 0.2s ease;
+}
+
+.modal-small {
+	max-width: 400px;
+}
+
+@keyframes modalIn {
+	from {
+		transform: scale(0.9);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 20px 24px;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1a1a1a;
+}
+
+.modal-close {
+	background: none;
+	border: none;
+	font-size: 28px;
+	color: #6c757d;
+	cursor: pointer;
+	line-height: 1;
+	padding: 0;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+	background: #f8f9fa;
+	color: #495057;
+}
+
+.modal-body {
+	padding: 24px;
+}
+
+.modal-text {
+	font-size: 14px;
+	color: #495057;
+	margin-bottom: 8px;
+}
+
+.modal-text-secondary {
+	font-size: 13px;
+	color: #6c757d;
+	font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+	background: #f8f9fa;
+	padding: 8px 12px;
+	border-radius: 4px;
+	margin-bottom: 16px;
+}
+
+.modal-actions {
+	display: flex;
+	gap: 12px;
+	justify-content: flex-end;
+	margin-top: 24px;
+}
+
+/* ============================================================================
+   Dark Mode Support
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+	body {
+		background: #1a1a1a;
+		color: #e9ecef;
+	}
+
+	.header h1 {
+		color: #e9ecef;
+	}
+
+	.subtitle {
+		color: #adb5bd;
+	}
+
+	.card {
+		background: #2d2d2d;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	}
+
+	.card-header {
+		border-bottom-color: #495057;
+	}
+
+	.card-title {
+		color: #e9ecef;
+	}
+
+	.card-description {
+		color: #adb5bd;
+	}
+
+	.form-label {
+		color: #adb5bd;
+	}
+
+	.form-input {
+		background: #343a40;
+		border-color: #495057;
+		color: #e9ecef;
+	}
+
+	.form-input:focus {
+		border-color: #007bff;
+		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+	}
+
+	.form-input::placeholder {
+		color: #6c757d;
+	}
+
+	.form-hint {
+		color: #adb5bd;
+	}
+
+	.rules-table thead th {
+		background: #343a40;
+		color: #adb5bd;
+		border-bottom-color: #495057;
+	}
+
+	.rules-table tbody td {
+		border-bottom-color: #495057;
+	}
+
+	.rules-table tbody tr:hover {
+		background: #343a40;
+	}
+
+	.domain-text {
+		color: #e9ecef;
+	}
+
+	.selector-text {
+		color: #adb5bd;
+	}
+
+	.loading-text,
+	.empty-text {
+		color: #adb5bd;
+	}
+
+	.modal-content {
+		background: #2d2d2d;
+	}
+
+	.modal-header {
+		border-bottom-color: #495057;
+	}
+
+	.modal-title {
+		color: #e9ecef;
+	}
+
+	.modal-close {
+		color: #adb5bd;
+	}
+
+	.modal-close:hover {
+		background: #343a40;
+		color: #e9ecef;
+	}
+
+	.modal-text {
+		color: #adb5bd;
+	}
+
+	.modal-text-secondary {
+		background: #343a40;
+		color: #adb5bd;
+	}
+}

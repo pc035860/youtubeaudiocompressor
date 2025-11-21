@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Compressor - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Audio Compressor</h1>
+            <p class="subtitle">Manage custom domain rules</p>
+        </div>
+
+        <!-- Add Rule Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Add New Rule</h2>
+                <p class="card-description">Create a custom domain rule for audio compression</p>
+            </div>
+            <div class="card-body">
+                <form id="addRuleForm" class="rule-form">
+                    <div class="form-group">
+                        <label for="domainInput" class="form-label">Domain Pattern</label>
+                        <input
+                            type="text"
+                            id="domainInput"
+                            class="form-input"
+                            placeholder="*.example.com"
+                            required
+                        >
+                        <span class="form-hint">Use * as wildcard (e.g., *.youtube.com)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="selectorInput" class="form-label">Video Selector</label>
+                        <input
+                            type="text"
+                            id="selectorInput"
+                            class="form-input"
+                            placeholder="video"
+                            required
+                        >
+                        <span class="form-hint">CSS selector for video elements</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Add Rule</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Rules List Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Domain Rules</h2>
+                <p class="card-description">Manage existing rules</p>
+            </div>
+            <div class="card-body">
+                <!-- Rules Table -->
+                <div class="table-container">
+                    <table class="rules-table">
+                        <thead>
+                            <tr>
+                                <th class="col-checkbox">
+                                    <span class="sr-only">Enabled</span>
+                                </th>
+                                <th class="col-domain">Domain</th>
+                                <th class="col-selector">Selector</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rulesTableBody">
+                            <!-- Rules will be dynamically inserted here -->
+                            <tr class="loading-row">
+                                <td colspan="4">
+                                    <div class="loading-text">Loading rules...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p class="empty-text">No rules found. Add your first rule above!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Message -->
+        <div id="statusMessage" class="status-message" style="display: none;">
+            <span class="status-text"></span>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Rule</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editRuleForm" class="rule-form">
+                    <input type="hidden" id="editRuleId">
+
+                    <div class="form-group">
+                        <label for="editDomainInput" class="form-label">Domain Pattern</label>
+                        <input
+                            type="text"
+                            id="editDomainInput"
+                            class="form-input"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editSelectorInput" class="form-label">Video Selector</label>
+                        <input
+                            type="text"
+                            id="editSelectorInput"
+                            class="form-input"
+                            required
+                        >
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelEdit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3 class="modal-title">Delete Rule</h3>
+                <button class="modal-close" id="closeDeleteModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Are you sure you want to delete this rule?</p>
+                <p class="modal-text-secondary" id="deleteRuleDomain"></p>
+                <input type="hidden" id="deleteRuleId">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/options.ts"></script>
+</body>
+</html>

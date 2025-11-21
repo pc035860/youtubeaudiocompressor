@@ -136,6 +136,35 @@ body {
     font-style: italic;
 }
 
+.options-link {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e9ecef;
+}
+
+.options-btn {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.options-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     body {
@@ -168,5 +197,19 @@ body {
     
     .status-text {
         color: #adb5bd;
+    }
+
+    .options-link {
+        border-top-color: #495057;
+    }
+
+    .options-btn {
+        background: #343a40;
+        color: #adb5bd;
+    }
+
+    .options-btn:hover {
+        background: #495057;
+        color: #e9ecef;
     }
 }
